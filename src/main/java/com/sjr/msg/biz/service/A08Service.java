@@ -1,7 +1,10 @@
 package com.sjr.msg.biz.service;
 
-import com.google.errorprone.annotations.Var;
 import com.sjr.msg.biz.dao.A08Mapper;
+import com.sjr.msg.decoder.OutPutDecoder;
+import com.sjr.msg.message.MessageType;
+import com.sjr.msg.message.PgOutMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.postgresql.PGConnection;
 import org.postgresql.PGProperty;
 import org.postgresql.replication.LogSequenceNumber;
@@ -10,25 +13,42 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.ByteBuffer;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.HashMap;
+import java.sql.*;
+import java.time.Duration;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * select * from  pg_replication_slots
+ *
  * @author TMW
  * @date 2020/8/24 9:40
  */
 @Service
+@Slf4j
 public class A08Service {
 
     @Autowired
     private A08Mapper a08Mapper;
+    private HashSet<String> focus = new HashSet<String>() {{
+        add("a08");
+
+    }};
+    private static final String CREATE_PUBLICATION_SQL_FORMAT = "CREATE PUBLICATION %s FOR TABLE  %s WITH (publish = 'insert,update,delete');";
+    private static final String QUERY_PUBLICATION_SQL_FORMAT = "SELECT count(1) FROM pg_publication where pubname = '%s';";
+    private static final String DROP_PUBLICATION_SQL_FORMAT = "DROP PUBLICATION %s;";
+    private static final String ALTER_TABLE_REPLICA_SQL_FORMAT = "ALTER TABLE \"%s\" REPLICA IDENTITY FULL";
+    private static final String CREATE_PUBLICATION_SLOT_SQL_FORMAT = "CREATE_REPLICATION_SLOT %s %s LOGICAL %s;";
+    private static final String publicationName = "publication_name";
+    private static final String slotName = "slot_name";
+    private LogSequenceNumber lastLsn;
+    private PGReplicationStream stream;
 
     public static void main(String[] args) throws SQLException, InterruptedException {
-        String url = "jdbc:postgresql://192.168.3.9:5432/devdb";
+        String url = "jdbc:postgresql://139.9.233.106:9095/logic_test";
         Properties props = new Properties();
         PGProperty.USER.set(props, "postgres");
         PGProperty.PASSWORD.set(props, "20191809");
@@ -36,74 +56,238 @@ public class A08Service {
         PGProperty.REPLICATION.set(props, "database");
         PGProperty.PREFER_QUERY_MODE.set(props, "simple");
 
-        Connection con = DriverManager.getConnection(url, props);
-        PGConnection replConnection = con.unwrap(PGConnection.class);
+        Connection connection = DriverManager.getConnection(url, props);
+        PGConnection replConnection = connection.unwrap(PGConnection.class);
 
-        // 检查 创建 pg_publication
-
-        // 检查 创建 REPLICA IDENTITY FULL
-
-
-        // 创建复制插槽
         // replConnection.getReplicationAPI().dropReplicationSlot("demo_logical_slot");
-        //
-        // replConnection.getReplicationAPI()
-        //         .createReplicationSlot()
-        //         .logical()
-        //         .withSlotName("demo_logical_slot")
-        //         .withOutputPlugin("test_decoding")
-        //         .make();
+        A08Service a08Service = new A08Service();
+        boolean isOk = false;
 
-        // 创建逻辑复制流
-        PGReplicationStream stream = replConnection.getReplicationAPI()
-                .replicationStream()
-                .logical()
-                .withSlotName("demo_logical_slot")
-                .withSlotOption("include-xids", false)
-                .withSlotOption("skip-empty-xacts", true)
-                .withStatusInterval(20, TimeUnit.SECONDS)
-                .start();
-
-        while (true) {
-            //Receive last successfully send to queue message. LSN ordered.
-            // LogSequenceNumber successfullySendToQueue = getQueueFeedback();
-            // if (successfullySendToQueue != null) {
-            //     stream.setAppliedLSN(successfullySendToQueue);
-            //     stream.setFlushedLSN(successfullySendToQueue);
-            // }
-
-            // System.out.println("connect status:" + con.isClosed());
-
-            //non blocking receive message
-            ByteBuffer msg = stream.readPending();
-
-            if (msg == null) {
-                TimeUnit.MILLISECONDS.sleep(10L);
-                continue;
-            }
-
-            // try {
-            //     final HashMap<String, String> stringStringHashMap = DecodeUtils.resolveColumnsFromStreamTupleData(msg);
-            //     stringStringHashMap.forEach((l,v)->{
-            //         System.out.println(l);
-            //     });
-            // } catch (Exception e) {
-            //     e.printStackTrace();
-            // }
-
-            // System.out.println("------------------");
-            // System.out.println((char) msg.get());
-            // System.out.println("------------------");
-            int offset = msg.arrayOffset();
-            byte[] source = msg.array();
-            int length = source.length - offset;
-            final String s = new String(source, offset, length);
-            System.out.println(s);
-            //feedback
-            stream.setAppliedLSN(stream.getLastReceiveLSN());
-            stream.setFlushedLSN(stream.getLastReceiveLSN());
+        log.info("create publication if not exist.");
+        isOk = a08Service.createPublication(connection);
+        if (!isOk) {
+            throw new RuntimeException("创建数据库订阅异常!请检查数据库连接配置.");
+        }
+        log.info("alter table REPLICA.");
+        isOk = a08Service.alterTableReplica(connection);
+        if (!isOk) {
+            throw new RuntimeException("修改表数据订阅方式异常!");
+        }
+        log.info("create publication slot.");
+        isOk = a08Service.createPublicationSlot(connection);
+        if (!isOk) {
+            throw new RuntimeException("创建订阅槽失败!");
         }
 
+        log.info("get table primary key info.");
+        isOk = a08Service.getPkInfo(connection);
+        if (!isOk) {
+            throw new RuntimeException("获取主键信息失败!");
+        }
+
+        log.info("make publication stream.");
+        isOk = a08Service.makePGStream(connection);
+        if (!isOk) {
+            throw new RuntimeException("获取流失败!");
+        }
+
+        while (true) {
+            ByteBuffer byteBuffer = a08Service.stream.readPending();
+            Optional<ByteBuffer> optional = Optional.ofNullable(byteBuffer);
+            optional.ifPresent(buffer -> {
+                final PgOutMessage message = OutPutDecoder.getInstance().process(buffer);
+                if (message == null) {
+                    return;
+                }
+                final MessageType opt = message.getOpt();
+                if (MessageType.DELETE.equals(opt) || MessageType.INSERT.equals(opt) || MessageType.UPDATE.equals(opt)) {
+                    if (MessageType.UPDATE.equals(opt)) {
+                        final Set<String> changeKey = message.getChangeKey();
+                        if (changeKey == null || changeKey.isEmpty()) {
+                            return;
+                        }
+                    }
+
+                    System.out.println(message);
+                }
+
+            });
+        }
     }
 
+    /**
+     * 创建订阅
+     *
+     * @param connection 连接对象
+     * @return 是否创建成功
+     **/
+    private boolean createPublication(Connection connection) {
+        final HashSet<String> focus = this.focus;
+        if (focus == null || focus.isEmpty()) {
+            log.warn("focus table is empty.");
+            return false;
+        }
+        final String queryPublicationSql = String.format(QUERY_PUBLICATION_SQL_FORMAT, publicationName);
+        boolean isExist = false;
+        try (
+                final Statement statement = connection.createStatement();
+                final ResultSet resultSet = statement.executeQuery(queryPublicationSql)
+        ) {
+            final boolean next = resultSet.next();
+            if (!next) {
+                return false;
+            }
+            final long count = resultSet.getLong(1);
+            log.info("Sql: {}", queryPublicationSql);
+            if (count == 0L) {
+                log.info("publication name {} is not exist! will be create {} for publication", publicationName, publicationName);
+            } else {
+                isExist = true;
+                log.info("publication name {} is already exist!", publicationName);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            log.error("sql 执行异常!", e);
+            return false;
+        }
+
+        if (isExist) {
+            return true;
+        }
+
+        try (final Statement statement = connection.createStatement()) {
+            final String createSql = String.format(CREATE_PUBLICATION_SQL_FORMAT, publicationName, this.getPublicationTablesSql());
+            statement.execute(createSql);
+            log.info("Sql: {}", createSql);
+            log.info("create publication {} success.", publicationName);
+
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            log.error("create publication {} error.", publicationName);
+            return false;
+        }
+    }
+
+    public String getPublicationTablesSql() {
+        if (focus.isEmpty()) {
+            return null;
+        }
+        StringBuilder builder = new StringBuilder();
+        focus.forEach(tableName -> {
+            builder.append("\"");
+            builder.append(tableName);
+            builder.append("\"");
+            builder.append(",");
+        });
+        final String sql = builder.toString();
+        return sql.substring(0, sql.length() - 1);
+    }
+
+    /***
+     * 修改表数据订阅方式
+     * @param connection 连接
+     * @return 是否修改成功.
+     * **/
+    private boolean alterTableReplica(Connection connection) {
+        final HashSet<String> focus = this.focus;
+        if (focus.isEmpty()) {
+            log.error("focus table is empty.");
+            return false;
+        }
+        try (final Statement statement = connection.createStatement()) {
+            for (String tableName : focus) {
+                final String sql = String.format(ALTER_TABLE_REPLICA_SQL_FORMAT, tableName);
+                log.info("Sql: {}", sql);
+                statement.execute(sql);
+            }
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            log.error("修改订阅表异常!", e);
+            return false;
+        }
+    }
+
+    /***
+     * 创建订阅槽
+     * @param connection 数据库连接
+     * @return 是否创建成功
+     * **/
+    private boolean createPublicationSlot(Connection connection) {
+        try (Statement statement = connection.createStatement()) {
+            final String sql = String.format(CREATE_PUBLICATION_SLOT_SQL_FORMAT, slotName, "TEMPORARY", "pgoutput");
+            log.info("Sql:{}", sql);
+            final boolean isOk = statement.execute(sql);
+            if (!isOk) {
+                log.error("创建订阅槽失败!");
+                return false;
+            }
+            final ResultSet resultSet = statement.getResultSet();
+            final boolean next = resultSet.next();
+            if (!next) {
+                resultSet.close();
+                log.error("创建订阅槽无返回信息!");
+                return false;
+            }
+            String startPoint = resultSet.getString("consistent_point");
+            lastLsn = LogSequenceNumber.valueOf(LogSequenceNumber.valueOf(startPoint).asLong());
+            resultSet.close();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            log.error("创建订阅槽失败!", exception);
+            return false;
+        }
+        return true;
+    }
+
+    /***
+     * 获取关注表的主键信息
+     * **/
+    private boolean getPkInfo(Connection connection) {
+        try {
+            final DatabaseMetaData metaData = connection.getMetaData();
+            for (String tableName : focus) {
+                try (ResultSet resultSet = metaData.getPrimaryKeys(connection.getCatalog(), "public", tableName)) {
+                    resultSet.next();
+                    final String pkName = resultSet.getString("COLUMN_NAME");
+                    OutPutDecoder.getInstance().addPkCache(tableName, pkName);
+                } catch (SQLException e) {
+                    log.error("获取表信息失败.", e);
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            log.error("获取表信息失败.", e);
+            return false;
+        }
+        return true;
+    }
+
+    /****
+     * @param connection 数据库连接
+     * @return 是否创建成功
+     * **/
+    private boolean makePGStream(Connection connection) {
+        try {
+            final PGConnection pgConnection = connection.unwrap(PGConnection.class);
+            this.stream = pgConnection.getReplicationAPI()
+                    .replicationStream()
+                    .logical()
+                    .withSlotName(slotName)
+                    .withSlotOption("proto_version", 1)
+                    .withSlotOption("publication_names", publicationName)
+                    .withStartPosition(lastLsn)
+                    .withStatusInterval(Math.toIntExact(Duration.ofSeconds(10).toMillis()), TimeUnit.MILLISECONDS)
+                    .start();
+            stream.forceUpdateStatus();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            log.error("创建订阅流失败!", e);
+        }
+        return false;
+    }
 }
