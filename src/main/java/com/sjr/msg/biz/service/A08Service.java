@@ -4,6 +4,8 @@ import com.sjr.msg.biz.dao.A08Mapper;
 import com.sjr.msg.decoder.OutPutDecoder;
 import com.sjr.msg.message.MessageType;
 import com.sjr.msg.message.PgOutMessage;
+import com.sjr.msg.util.JMSUtil;
+import com.sjr.msg.util.JackSonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.postgresql.PGConnection;
 import org.postgresql.PGProperty;
@@ -108,9 +110,9 @@ public class A08Service {
                         }
                     }
 
-                    System.out.println(message);
+                    // System.out.println(message);
+                    JMSUtil.sendMessage("a08", JackSonUtil.toJson(message));
                 }
-
             });
         }
     }
