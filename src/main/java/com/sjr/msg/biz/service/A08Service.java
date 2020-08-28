@@ -24,7 +24,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * select * from  pg_replication_slots
+ * select * from  pg_replication_slots  复制槽
+ * SELECT * FROM pg_publication    发布
  *
  * @author TMW
  * @date 2020/8/24 9:40
@@ -50,10 +51,10 @@ public class A08Service {
     private PGReplicationStream stream;
 
     public static void main(String[] args) throws SQLException, InterruptedException {
-        String url = "jdbc:postgresql://139.9.233.106:9095/logic_test";
+        String url = "jdbc:postgresql://47.110.133.228:5432/dev";
         Properties props = new Properties();
         PGProperty.USER.set(props, "postgres");
-        PGProperty.PASSWORD.set(props, "20191809");
+        PGProperty.PASSWORD.set(props, "123456");
         PGProperty.ASSUME_MIN_SERVER_VERSION.set(props, "9.4");
         PGProperty.REPLICATION.set(props, "database");
         PGProperty.PREFER_QUERY_MODE.set(props, "simple");
