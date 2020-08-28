@@ -5,9 +5,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 /**
- *
- *
- *
+ * Logical replication
+ * <p>
+ * <p>
  * https://www.infoq.cn/article/lp5ucrKTI3V4aW1PWvxm
  * https://www.modb.pro/db/11522
  * 中文文档 http://postgres.cn/docs/11/
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 public class CDCConfig implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        // 创建
 
     }
 }
