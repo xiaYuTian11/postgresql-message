@@ -48,12 +48,13 @@ public class Consumer {
 
     public static void main(String[] args) {
         while (true) {
-            final String test = JMSUtil.receiveMessage("a08");
+            // final String test = JMSUtil.receiveMessage("a08");
+            final String test = JMSUtil.receiveMessage("test");
             System.out.println("receive message ： " + test);
-            if (!Strings.isNullOrEmpty(test)) {
-                final PgOutMessage pgOutMessage = JackSonUtil.toObject(test, PgOutMessage.class);
-                System.out.println(pgOutMessage);
-            }
+            // if (!Strings.isNullOrEmpty(test)) {
+            //     final PgOutMessage pgOutMessage = JackSonUtil.toObject(test, PgOutMessage.class);
+            //     System.out.println(pgOutMessage);
+            // }
         }
     }
 

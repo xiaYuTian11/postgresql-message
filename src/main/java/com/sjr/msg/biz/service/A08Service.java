@@ -44,8 +44,8 @@ public class A08Service {
     private static final String DROP_PUBLICATION_SQL_FORMAT = "DROP PUBLICATION %s;";
     private static final String ALTER_TABLE_REPLICA_SQL_FORMAT = "ALTER TABLE \"%s\" REPLICA IDENTITY FULL";
     private static final String CREATE_PUBLICATION_SLOT_SQL_FORMAT = "CREATE_REPLICATION_SLOT %s %s LOGICAL %s;";
-    private static final String publicationName = "publication_name";
-    private static final String slotName = "slot_name";
+    private static final String publicationName = "jyj_publication_name";
+    private static final String slotName = "jyj_slot_name";
     private LogSequenceNumber lastLsn;
     private PGReplicationStream stream;
 

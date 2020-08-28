@@ -34,7 +34,7 @@ public class JMSUtil {
         try {
             connection = connectionFactory.createConnection();
             connection.start();
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -106,7 +106,9 @@ public class JMSUtil {
      */
     public static String receiveMessage(String queue) {
         try {
-            TextMessage message = (TextMessage) getMessageConsumer(queue).receive(1000 * 60 * 3);
+            final Message receive = getMessageConsumer(queue).receive(1000 * 60 * 3);
+            receive.acknowledge();
+            TextMessage message = (TextMessage) receive;
             if (message != null) {
                 return message.getText();
             }
