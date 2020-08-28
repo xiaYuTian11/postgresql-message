@@ -96,6 +96,7 @@ public class A08Service {
 
         while (true) {
             ByteBuffer byteBuffer = a08Service.stream.readPending();
+            System.out.println(a08Service.stream.getLastReceiveLSN());
             Optional<ByteBuffer> optional = Optional.ofNullable(byteBuffer);
             optional.ifPresent(buffer -> {
                 final PgOutMessage message = OutPutDecoder.getInstance().process(buffer);
@@ -111,7 +112,6 @@ public class A08Service {
                         }
                     }
 
-                    // System.out.println(message);
                     JMSUtil.sendMessage("a08", JackSonUtil.toJson(message));
                 }
             });
