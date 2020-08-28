@@ -1,17 +1,17 @@
 package com.sjr.msg.pg;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.sjr.msg.decoder.Table;
 import lombok.extern.slf4j.Slf4j;
 import org.postgresql.PGConnection;
 import org.postgresql.replication.LogSequenceNumber;
 import org.postgresql.replication.PGReplicationStream;
 
+import java.nio.ByteBuffer;
 import java.sql.*;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,6 +26,10 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Slf4j
 public class ConnectionManager {
+    /**
+     * 连接管理是咧
+     */
+    private static ConnectionManager CONNECT_MANAGER;
     /**
      * 创建 订阅
      */
@@ -76,19 +80,23 @@ public class ConnectionManager {
     private final Map<String, String> tablePkCache = new ConcurrentHashMap<>(16);
 
     /**
+     * 获取对象单列
+     *
+     * @return
+     */
+    public static synchronized ConnectionManager getInstance() {
+        if (CONNECT_MANAGER == null) {
+            CONNECT_MANAGER = new ConnectionManager();
+        }
+        return CONNECT_MANAGER;
+    }
+
+    /**
      * 初始化相关配置
      *
      * @return
      */
-    public boolean init(ConnectionConfig connectionConfig) {
-        if (Objects.isNull(connectionConfig)) {
-            log.error("connection is null");
-            return !isError.get();
-        }
-        if (CollectionUtil.isEmpty(connectionConfig.getSyncTableSet())) {
-            log.error("sync table set is empty");
-            return !isError.get();
-        }
+    public void init(ConnectionConfig connectionConfig) {
         config.set(connectionConfig);
 
         log.info("create pgsql connection!");
@@ -124,8 +132,6 @@ public class ConnectionManager {
         if (isError.get()) {
             throw new RuntimeException("获取流失败!");
         }
-
-        return !isError.get();
     }
 
     /**
@@ -265,4 +271,16 @@ public class ConnectionManager {
         }
     }
 
+    /***
+     * 读取数据
+     * @return buff
+     * **/
+    public Optional<ByteBuffer> readPending() {
+        try {
+            return Optional.ofNullable(stream.get().readPending());
+        } catch (Exception e) {
+            log.warn("读取流信息出错：{}", e.getMessage());
+            return Optional.empty();
+        }
+    }
 }

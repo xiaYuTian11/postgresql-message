@@ -1,6 +1,6 @@
-package com.sjr.msg.message;
+package com.sjr.msg.pg;
 
-import com.sjr.msg.pg.MessageType;
+import com.sjr.msg.message.CollectionUtil;
 import lombok.ToString;
 
 import java.util.*;
