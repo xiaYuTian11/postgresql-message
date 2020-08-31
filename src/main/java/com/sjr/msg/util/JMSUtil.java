@@ -6,6 +6,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import javax.jms.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * 消息工具类
@@ -56,7 +57,7 @@ public class JMSUtil {
             sendQueues.put(queueName, producer);
             return producer;
         } catch (JMSException e) {
-            log.error("create producer error: {}", e.getMessage());
+            log.error("create producer error: ", e);
         }
         return sendQueues.get(queueName);
     }
@@ -116,6 +117,23 @@ public class JMSUtil {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * 异步接收消息
+     *
+     * @param queue
+     * @param consumer
+     */
+    public static void receiveMessage(String queue, Consumer<Message> consumer) throws JMSException {
+        getMessageConsumer(queue).setMessageListener(message -> {
+            try {
+                message.acknowledge();
+                consumer.accept(message);
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public static void close() {

@@ -1,45 +1,52 @@
 package com.sjr.msg.pg;
 
-import com.sjr.msg.message.CollectionUtil;
 import lombok.ToString;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
-/***
+/**
  * 消息封装
- * @author doge
- * **/
+ *
+ * @author TMW
+ */
 @ToString
 public class PgOutMessage {
 
-    /***
+    /**
      * 操作类型
-     * */
+     */
     private MessageType opt;
     /**
      * 表名
-     **/
+     */
     private String tableName;
-    /***
+    /**
      * 主键值
-     * **/
+     */
     private String pkValue;
-    /***
+    /**
      * 主键名称
-     * */
+     */
     private String pkName;
-    /***
+    /**
      * 消息编号
-     * **/
+     */
     private long lsnNum;
     /**
      * 旧数据
-     **/
+     */
     private Map<String, String> oldData;
-    /***
+    /**
      * 老数据
-     * **/
+     */
     private Map<String, String> newData;
+    /**
+     * 变化的列
+     */
+    private Set<String> changeKey;
 
     public MessageType getOpt() {
         return opt;
@@ -104,53 +111,33 @@ public class PgOutMessage {
         return this;
     }
 
-    public PgOutMessage addOldData(String key, String value) {
-        if (oldData == null) {
-            oldData = new HashMap<>(10);
-        }
-        oldData.put(key, value);
+    public PgOutMessage setChangeKey(Set<String> changeKey) {
+        this.changeKey = changeKey;
         return this;
     }
 
-    public PgOutMessage addNewData(String key, String value) {
-        if (newData == null) {
-            newData = new HashMap<>(10);
-        }
-        newData.put(key, value);
-        return this;
-    }
-
+    @SuppressWarnings("all")
     public Set<String> getChangeKey() {
-        if (oldData == null && newData == null) {
-            return new HashSet<>(0);
-        }
-        if (oldData == null) {
-            return newData.keySet();
-        }
-        if (newData == null) {
-            return oldData.keySet();
-        }
-        Set<String> changeSet = new HashSet<>(10);
-        newData.forEach((key, value) -> {
-            String oldValue = oldData.get(key);
-            if (!Objects.equals(oldValue, value)) {
-                changeSet.add(key);
+        if (changeKey == null) {
+            if (oldData == null && newData == null) {
+                changeKey = new HashSet<>(0);
             }
-        });
-        return changeSet;
-    }
-
-    public boolean isChange(String[] fields) {
-        if (oldData == null || newData == null) {
-            return true;
+            if (oldData == null && newData != null) {
+                changeKey = newData.keySet();
+            }
+            if (newData == null && oldData != null) {
+                changeKey = oldData.keySet();
+            }
+            changeKey = new HashSet<>(10);
+            newData.forEach((key, value) -> {
+                String oldValue = oldData.get(key);
+                if (!Objects.equals(oldValue, value)) {
+                    changeKey.add(key);
+                }
+            });
         }
-        Map<String, String> map1 = new HashMap<>(newData.size() + 2);
-        Map<String, String> map2 = new HashMap<>(oldData.size() + 2);
-        Arrays.stream(fields).forEach(field -> {
-            map1.put(field, newData.get(field));
-            map2.put(field, oldData.get(field));
-        });
-        return CollectionUtil.compareMapNe(map1, map2);
+
+        return changeKey;
     }
 
 }

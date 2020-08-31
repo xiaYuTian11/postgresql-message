@@ -1,11 +1,9 @@
 package com.sjr.msg.pg;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.sjr.msg.message.PgOutMessage;
+import com.google.common.util.concurrent.*;
 import lombok.extern.slf4j.Slf4j;
+import org.postgresql.replication.LogSequenceNumber;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -26,13 +24,25 @@ public class PGReplicationRun {
     private static final ListeningExecutorService EXECUTOR_SERVICE = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor(
             new ThreadFactoryBuilder().setDaemon(false).setNameFormat("PGReplicationRun-thread-%d").build()
     ));
+    private static final ListeningExecutorService EXEC_CALLBACK = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor(
+            new ThreadFactoryBuilder().setDaemon(false).setNameFormat("PGReplicationRun-callback-thread-%d").build()));
+
+    private AbstractPGConsumer consumer;
+
+    public PGReplicationRun(AbstractPGConsumer consumer) {
+        this.consumer = consumer;
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            ConnectionManager.getInstance().shutdown();
+            EXEC_CALLBACK.shutdown();
+        }));
+    }
 
     /**
      * 异步执行
      *
      * @param connectionConfig
      */
-    private synchronized void asyncRun(ConnectionConfig connectionConfig) {
+    public synchronized void asyncRun(ConnectionConfig connectionConfig) {
         EXECUTOR_SERVICE.execute(() -> run(connectionConfig));
     }
 
@@ -41,7 +51,7 @@ public class PGReplicationRun {
      *
      * @param config
      */
-    public void run(ConnectionConfig config) {
+    private void run(ConnectionConfig config) {
         if (Objects.isNull(config)) {
             log.error("connection is null");
             return;
@@ -53,7 +63,8 @@ public class PGReplicationRun {
 
         final ConnectionManager manager = ConnectionManager.getInstance();
         manager.init(config);
-
+        log.info("Create Logical Replication Success!");
+        receive(manager);
     }
 
     /**
@@ -82,11 +93,24 @@ public class PGReplicationRun {
                                 return;
                             }
                         }
-                        // process(message);
+                        final LogSequenceNumber lastLsn = ConnectionManager.getInstance().getLastLsn();
+                        doPGConsumption(message, lastLsn);
                     }
                 });
             }
         }
+    }
+
+    /**
+     * 消费
+     *
+     * @param message
+     * @param lastLsn
+     */
+    private void doPGConsumption(PgOutMessage message, LogSequenceNumber lastLsn) {
+        final ListenableFuture<Boolean> future = consumer.process(message);
+        //回调
+        Futures.addCallback(future, new PGConsumerCallback(lastLsn), EXEC_CALLBACK);
     }
 
 }

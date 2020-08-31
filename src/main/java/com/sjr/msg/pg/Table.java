@@ -1,4 +1,4 @@
-package com.sjr.msg.decoder;
+package com.sjr.msg.pg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +19,11 @@ public class Table {
 
     private List<String> columnNames;
 
-    public Table(int relationId, String schemaName, String tableName, int replicaIdentityId, short columnCount) {
+    public Table(int relationId, String schemaName, String tableName,String pkName, int replicaIdentityId, short columnCount) {
         this.relationId = relationId;
         this.schemaName = schemaName;
         this.tableName = tableName;
+        this.pkName = pkName;
         this.replicaIdentityId = replicaIdentityId;
         this.columnCount = columnCount;
     }

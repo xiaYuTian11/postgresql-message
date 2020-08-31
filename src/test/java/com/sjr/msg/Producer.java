@@ -1,4 +1,4 @@
-package com.sjr.msg.mq;
+package com.sjr.msg;
 
 import com.sjr.msg.util.JMSUtil;
 

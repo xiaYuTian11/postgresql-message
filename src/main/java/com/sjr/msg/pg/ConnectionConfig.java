@@ -5,6 +5,7 @@ import org.postgresql.PGProperty;
 
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -49,11 +50,11 @@ public class ConnectionConfig {
     /**
      * 订阅号名称
      */
-    private String publicationName;
+    private String publicationName = DEFAULT_PUBLICATION_NAME;
     /**
      * 复制槽名称
      */
-    private String slotName;
+    private String slotName = DEFAULT_SLOT_NAME;
     /**
      * 解析流插件名称
      */
@@ -66,7 +67,7 @@ public class ConnectionConfig {
     /**
      * 需要同步的表名称
      */
-    private HashSet<String> syncTableSet;
+    private Set<String> syncTableSet;
 
     /**
      * 数据库连接url
@@ -97,6 +98,6 @@ public class ConnectionConfig {
      * @return
      */
     public String getPublicationTablesSql() {
-        return syncTableSet.stream().map(tableName -> "'" + tableName + "'").collect(Collectors.joining(","));
+        return syncTableSet.stream().map(tableName -> "\"" + tableName + "\"").collect(Collectors.joining(","));
     }
 }

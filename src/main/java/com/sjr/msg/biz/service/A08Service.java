@@ -26,6 +26,7 @@
 // /**
 //  * select * from  pg_replication_slots  复制槽
 //  * SELECT * FROM pg_publication    发布
+//  * select pg_drop_replication_slot('jyj_slot');  删除订阅槽
 //  *
 //  * @author TMW
 //  * @date 2020/8/24 9:40

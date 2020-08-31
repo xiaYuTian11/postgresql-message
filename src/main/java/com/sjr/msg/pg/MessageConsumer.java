@@ -1,7 +1,6 @@
 package com.sjr.msg.pg;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.sjr.msg.message.PgOutMessage;
 
 /**
  * 消费者通用接口
@@ -11,8 +10,8 @@ import com.sjr.msg.message.PgOutMessage;
 public interface MessageConsumer {
 
     /***
-     * @param messages 消息集合
+     * @param message 消息集合
      * @return 返回future
      * **/
-    ListenableFuture<Boolean> process(PgOutMessage messages);
+    ListenableFuture<Boolean> process(PgOutMessage message);
 }
