@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractPGConsumer implements MessageConsumer {
 
     private static final ListeningExecutorService EXECUTOR_SERVICE = MoreExecutors.listeningDecorator(
-            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(55635),
+            new ThreadPoolExecutor(5, 10, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(55635),
                     new ThreadFactoryBuilder()
                             .setDaemon(true)
                             .setNameFormat("pg-message-consumer-%d")

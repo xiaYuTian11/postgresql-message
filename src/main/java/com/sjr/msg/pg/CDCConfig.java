@@ -27,11 +27,11 @@ public class CDCConfig implements ApplicationRunner {
         // 创建
         final PGReplicationRun pgReplicationRun = new PGReplicationRun(new PGConsumerToMQProd());
         ConnectionConfig connectionConfig = new ConnectionConfig();
-        connectionConfig.setHost("47.110.133.228");
+        connectionConfig.setHost("192.168.3.9");
         connectionConfig.setPort("5432");
         connectionConfig.setUserName("postgres");
-        connectionConfig.setPassword("123456");
-        connectionConfig.setDatabaseName("dev");
+        connectionConfig.setPassword("20191809");
+        connectionConfig.setDatabaseName("devdb");
         connectionConfig.setPublicationName("jyj_publication");
         connectionConfig.setSlotName("jyj_slot");
         Set<String> tableSet = new HashSet<>(16);

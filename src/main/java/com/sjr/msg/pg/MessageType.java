@@ -9,33 +9,48 @@ public enum MessageType {
     /**
      * 事务开始
      **/
-    BEGIN,
+    BEGIN(4),
     /**
      * 表关系
      **/
-    RELATION,
+    RELATION(5),
     /***
      * 提交
      * **/
-    COMMIT,
+    COMMIT(6),
     /**
      * 插入
      **/
-    INSERT,
+    INSERT(1),
     /**
      * 更新
      **/
-    UPDATE,
+    UPDATE(2),
     /**
      * 删除
      **/
-    DELETE,
+    DELETE(3),
 
-    TYPE,
+    TYPE(7),
 
-    ORIGIN,
+    ORIGIN(8),
 
-    TRUNCATE;
+    TRUNCATE(9);
+
+    MessageType(int code) {
+        this.code = code;
+    }
+
+    private int code;
+
+    public int getCode() {
+        return code;
+    }
+
+    public MessageType setCode(int code) {
+        this.code = code;
+        return this;
+    }
 
     public static MessageType forType(char type) {
         switch (type) {

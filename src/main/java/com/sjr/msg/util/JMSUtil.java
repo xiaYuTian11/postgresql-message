@@ -19,7 +19,10 @@ public class JMSUtil {
 
     private static final String USER_NAME = "admin";
     private static final String PASSWORD = "123456";
-    private static final String DEFAULT_URL = "tcp://47.110.133.228:61616";
+    // private static final String DEFAULT_URL = "tcp://47.110.133.228:61616";
+    private static final String DEFAULT_URL = "failover://(tcp://47.110.133.228:61616?wireFormat.maxInactivityDuration=0)&randomize=false&initialReconnectDelay=100&timeout=2000";
+
+    public static final String JYJ = "jyj";
 
     public static ConnectionFactory connectionFactory;
     public static Connection connection = null;
@@ -35,9 +38,10 @@ public class JMSUtil {
         try {
             connection = connectionFactory.createConnection();
             connection.start();
-            session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+            // session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("初始化 ActiveMQ 错误：", e);
         }
     }
 
@@ -93,7 +97,7 @@ public class JMSUtil {
         try {
             TextMessage message = session.createTextMessage(text);
             getMessageProducer(queue).send(message);
-            log.info(queue + " -- sendMessage -- " + text);
+            log.info(" sendMessage to {} : {}", queue, text);
         } catch (JMSException e) {
             e.printStackTrace();
         }
