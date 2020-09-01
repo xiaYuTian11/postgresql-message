@@ -41,7 +41,7 @@ public interface TableProcess {
             syncData.setOptCode(message.getOpt().getCode());
             syncData.setTableName(message.getTableName());
             syncData.setPkValue(message.getPkValue());
-            syncData.setPkName(message.getPkValue());
+            syncData.setPkName(message.getPkName());
             syncData.setNewData(syncNewData);
             syncData.setOldData(syncOldData);
             return syncData;

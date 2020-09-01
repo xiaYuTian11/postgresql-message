@@ -1,5 +1,7 @@
 package com.sjr.msg.entity;
 
+import lombok.ToString;
+
 import java.util.Map;
 
 /**
@@ -8,6 +10,7 @@ import java.util.Map;
  * @author TMW
  * @date 2020/9/1 9:47
  */
+@ToString
 public class SyncData {
     /**
      * 操作类型，1--insert，2--update，3--delete
