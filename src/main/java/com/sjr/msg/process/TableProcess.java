@@ -1,7 +1,7 @@
 package com.sjr.msg.process;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.sjr.msg.mq.SyncData;
+import com.sjr.msg.entity.SyncData;
 import com.sjr.msg.pg.PgOutMessage;
 
 import java.util.HashMap;
