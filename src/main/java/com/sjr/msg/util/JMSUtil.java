@@ -29,8 +29,10 @@ public class JMSUtil {
     // private static final String DEFAULT_URL = "tcp://47.110.133.228:61616";
     /**
      * jms.useAsyncSend=true&jms.producerWindowSize=10240  异步配置  文件过于大也会触发异步
+     * jms.redeliveryPolicy.maximumRedeliveries  最大重试次数
+     * wireFormat.maxInactivityDuration=0  不活动后断开连接，<= 0 禁用
      */
-    private static final String DEFAULT_URL = "failover://(tcp://47.110.133.228:61616)&jms.useAsyncSend=true&jms.producerWindowSize=10240&initialReconnectDelay=1000&maxReconnectDelay=15000&jms.redeliveryPolicy.maximumRedeliveries=-1";
+    private static final String DEFAULT_URL = "failover://(tcp://47.110.133.228:61616?wireFormat.maxInactivityDuration=0)?jms.useAsyncSend=true&jms.producerWindowSize=10240&initialReconnectDelay=1000&maxReconnectDelay=15000&jms.redeliveryPolicy.maximumRedeliveries=-1";
     // private static final String DEFAULT_URL = "failover://(tcp://47.110.133.228:61616?wireFormat.maxInactivityDuration=0)&jms.useAsyncSend=true&jms.producerWindowSize=10240&randomize=false&initialReconnectDelay=100&timeout=2000";
 
     public static final String JYJ = "jyj";
