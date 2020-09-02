@@ -16,7 +16,7 @@ public class PGConsumer extends AbstractPGConsumer {
             log.info("消息编号：" + message.getLsnNum());
             log.info(JackSonUtil.JSON.writeValueAsString(message));
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("json 转换异常", e);
         }
 
         // TODO: 2020/8/31 自定义处理消息逻辑

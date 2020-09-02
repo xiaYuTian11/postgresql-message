@@ -2,6 +2,7 @@ package com.sjr.msg.pg;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.google.common.util.concurrent.*;
+import com.sjr.msg.util.JMSUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.postgresql.replication.LogSequenceNumber;
 
@@ -33,6 +34,7 @@ public class PGReplicationRun {
         this.consumer = consumer;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             ConnectionManager.getInstance().shutdown();
+            JMSUtil.close();
             EXEC_CALLBACK.shutdown();
         }));
     }

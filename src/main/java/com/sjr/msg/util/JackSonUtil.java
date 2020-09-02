@@ -4,11 +4,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author 毛文超
- * @date 2019/4/159:09 AM
+ * json 转换
+ *
+ * @author TMW
+ * @date 2019/8/15
  */
+@Slf4j
 public class JackSonUtil {
 
     public static final ObjectMapper JSON = new ObjectMapper();
@@ -23,7 +27,7 @@ public class JackSonUtil {
         try {
             return JSON.writeValueAsString(o);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("toJson 转换异常", e);
             return "";
         }
     }
@@ -32,7 +36,7 @@ public class JackSonUtil {
         try {
             return JSON.readValue(str, cs);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("toObject 转换异常", e);
         }
         return null;
     }
