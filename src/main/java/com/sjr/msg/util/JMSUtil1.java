@@ -31,6 +31,7 @@ public class JMSUtil1 {
     public static Map<String, MessageProducer> sendQueues = new ConcurrentHashMap<>();
     public static Map<String, MessageConsumer> receiveQueues = new ConcurrentHashMap<>();
     public static final AtomicBoolean IS_INIT = new AtomicBoolean(Boolean.FALSE);
+    public static JMSUtil1 JMS_UTIL;
 
     private static String USER_NAME;
     private static String PASSWORD;
@@ -64,26 +65,28 @@ public class JMSUtil1 {
         JMSUtil1.PORT = port;
     }
 
-    // static {
-    //     connectionFactory = new ActiveMQConnectionFactory(
-    //             USER_NAME,
-    //             PASSWORD,
-    //             DEFAULT_URL);
-    //     try {
-    //         connection = connectionFactory.createConnection();
-    //         // 异步消息传递
-    //         ((ActiveMQConnection) connection).setUseAsyncSend(true);
-    //         connection.start();
-    //         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-    //     } catch (Exception e) {
-    //         log.error("初始化 ActiveMQ 错误：", e);
-    //     }
-    // }
+    private JMSUtil1() {
+
+    }
+
+    /**
+     * 获取单例
+     *
+     * @return
+     */
+    public synchronized static JMSUtil1 getInstance() {
+        if (JMS_UTIL == null) {
+            JMS_UTIL = new JMSUtil1();
+            JMS_UTIL.init();
+            return JMS_UTIL;
+        }
+        return JMS_UTIL;
+    }
 
     /**
      * 初始化
      */
-    public synchronized static void init() {
+    public void init() {
         if (!IS_INIT.get()) {
             log.info("初始化 ActiveMQ 连接");
             connectionFactory = new ActiveMQConnectionFactory(
@@ -108,7 +111,7 @@ public class JMSUtil1 {
      *
      * @return
      */
-    private static String getUrl() {
+    private String getUrl() {
         return String.format(DEFAULT_URL, HOST, PORT);
     }
 
@@ -118,10 +121,7 @@ public class JMSUtil1 {
      * @param queueName 队列名称
      * @return
      */
-    private static MessageProducer getMessageProducer(String queueName) {
-        if (!IS_INIT.get()) {
-            init();
-        }
+    private MessageProducer getMessageProducer(String queueName) {
         if (sendQueues.containsKey(queueName)) {
             return sendQueues.get(queueName);
         }
@@ -144,10 +144,7 @@ public class JMSUtil1 {
      * @param queueName
      * @return
      */
-    private static MessageConsumer getMessageConsumer(String queueName) {
-        if (!IS_INIT.get()) {
-            init();
-        }
+    private MessageConsumer getMessageConsumer(String queueName) {
         if (receiveQueues.containsKey(queueName)) {
             return receiveQueues.get(queueName);
         }
@@ -168,7 +165,7 @@ public class JMSUtil1 {
      * @param queue
      * @param text
      */
-    public static void sendMessage(String queue, String text) {
+    public void sendMessage(String queue, String text) {
         try {
             final MessageProducer producer = getMessageProducer(queue);
             TextMessage message = session.createTextMessage(text);
@@ -176,7 +173,7 @@ public class JMSUtil1 {
             ((ActiveMQMessageProducer) producer).send(message, new AsyncCallback() {
                 @Override
                 public void onSuccess() {
-                    log.info(" sendMessage to {} : {}", queue, text);
+                    log.info("sendMessage to {} : {}", queue, text);
                 }
 
                 @Override
@@ -214,7 +211,7 @@ public class JMSUtil1 {
      * @param queue
      * @return
      */
-    public static String receiveMessage(String queue) {
+    public String receiveMessage(String queue) {
         try {
             final Message receive = getMessageConsumer(queue).receive(1000 * 60 * 3);
             receive.acknowledge();
@@ -232,7 +229,7 @@ public class JMSUtil1 {
      * @param queue
      * @param consumer
      */
-    public static void receiveMessage(String queue, Consumer<Message> consumer) throws JMSException {
+    public void receiveMessage(String queue, Consumer<Message> consumer) throws JMSException {
         getMessageConsumer(queue).setMessageListener(consumer::accept);
     }
 

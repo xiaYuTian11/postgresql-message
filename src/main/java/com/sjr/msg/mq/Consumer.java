@@ -1,7 +1,7 @@
 package com.sjr.msg.mq;
 
 import com.sjr.msg.entity.SyncData;
-import com.sjr.msg.util.JMSUtil;
+import com.sjr.msg.util.JMSUtil1;
 import com.sjr.msg.util.JackSonUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,7 +9,6 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
-import java.text.SimpleDateFormat;
 
 /**
  * 消费者
@@ -22,7 +21,7 @@ public class Consumer {
 
     public static void main(String[] args) throws JMSException {
         while (true) {
-            JMSUtil.receiveMessage("jyj", message -> {
+            JMSUtil1.getInstance().receiveMessage("jyj", message -> {
                 if (message != null) {
                     try {
                         // message.acknowledge();

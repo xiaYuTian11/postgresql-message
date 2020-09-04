@@ -70,6 +70,8 @@ public class ConnectionManager {
     private final AtomicBoolean isError = new AtomicBoolean(Boolean.FALSE);
     private final AtomicBoolean isRunning = new AtomicBoolean(Boolean.TRUE);
 
+    private ConnectionManager(){}
+
     /**
      * 获取对象单列
      *

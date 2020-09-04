@@ -28,6 +28,8 @@ public class OutPutPlugin {
 
     private long currentLsn;
 
+    private OutPutPlugin(){}
+
     public static synchronized OutPutPlugin getInstance() {
         if (OUT_PUT_PLUGIN == null) {
             OUT_PUT_PLUGIN = new OutPutPlugin();
