@@ -2,6 +2,8 @@ package com.sjr.msg.pg;
 
 import lombok.Data;
 import org.postgresql.PGProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.HashSet;
 import java.util.Properties;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
  * @date 2020/8/28 11:14
  */
 @Data
+@ConfigurationProperties("pgsql")
+@Configuration
 public class ConnectionConfig {
 
     private static final String JDBC_URL_FORMAT = "jdbc:postgresql://%s:%s/%s?tcpKeepAlive=true";

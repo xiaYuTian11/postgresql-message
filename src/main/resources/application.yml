@@ -3,9 +3,38 @@ server:
   port: 8008
 
 # springboot 配置
-spring:
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://192.168.3.9:5432/devdb
-    username: postgres
-    password: 20191809
+#spring:
+#  datasource:
+#    driver-class-name: org.postgresql.Driver
+#    url: jdbc:postgresql://192.168.3.9:5432/devdb
+#    username: postgres
+#    password: 20191809
+## 自定义 ActiveMQ 配置
+pgsql:
+  host: 192.168.3.9
+  port: 5432
+  username: postgres
+  password: 20191809
+  database_name: devdb
+  publication_name: jyj_publication
+  slot_name: jyj_slot
+  syncTableSet:
+    - a01
+    - a02
+    - a05
+    - a06
+    - a08
+    - a14
+    - a15
+    - a29
+    - a30
+    - a36
+    - a37
+    - b01
+
+activemq:
+  username: admin
+  password: 123456
+  host: 47.110.133.228
+  port: 61616
+  queue_name: jyj
