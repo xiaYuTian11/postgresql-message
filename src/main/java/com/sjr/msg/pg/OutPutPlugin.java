@@ -70,8 +70,9 @@ public class OutPutPlugin {
      */
     private PgOutMessage handBegin(ByteBuffer buffer) {
         long lsn = buffer.getLong();
-        log.info("message: {}", MessageType.BEGIN);
-        log.info("Final LSN of transaction: {}", lsn);
+        // log.info("message: {}", MessageType.BEGIN);
+        // log.info("Final LSN of transaction: {}", lsn);
+        log.info("message type: {},LSN: {}", MessageType.BEGIN, lsn);
         this.currentLsn = lsn;
         PgOutMessage pgOutMessage = new PgOutMessage();
         pgOutMessage.setLsnNum(lsn);
@@ -92,10 +93,11 @@ public class OutPutPlugin {
         long lsn = buffer.getLong();
         // End LSN of the transaction
         long endLsn = buffer.getLong();
-        log.info("message: {}", MessageType.BEGIN);
-        log.info("Flags: {} (currently unused and most likely 0)", flags);
-        log.info("Commit LSN: {}", lsn);
-        log.info("End LSN of transaction: {}", endLsn);
+        // log.info("message: {}", MessageType.BEGIN);
+        // log.info("Flags: {} (currently unused and most likely 0)", flags);
+        // log.info("Commit LSN: {}", lsn);
+        // log.info("End LSN of transaction: {}", endLsn);
+        log.info("message type: {},Flags:{} ,LSN: {}, END LSN: {}", MessageType.BEGIN, flags, lsn, endLsn);
         PgOutMessage pgOutMessage = new PgOutMessage();
         pgOutMessage.setOpt(MessageType.COMMIT);
         pgOutMessage.setLsnNum(currentLsn);

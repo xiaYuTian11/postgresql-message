@@ -24,6 +24,7 @@ public class B01TableProcess implements TableProcess {
             add("id");
             add("B0100");
             add("B0101");
+            add("USED");
         }};
     }
 
