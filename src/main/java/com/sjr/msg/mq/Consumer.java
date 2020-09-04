@@ -9,6 +9,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
+import java.text.SimpleDateFormat;
 
 /**
  * 消费者
@@ -21,23 +22,25 @@ public class Consumer {
 
     public static void main(String[] args) throws JMSException {
         while (true) {
-            // log.info("监听消息。");
-            // JMSUtil.receiveMessage("jyj", message -> {
-            //     if (message != null) {
-            //         try {
-            //             // message.acknowledge();
-            //             TextMessage textMessage = (TextMessage) message;
-            //             final String text = textMessage.getText();
-            //             final SyncData syncData = JackSonUtil.toObject(text, SyncData.class);
-            //             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            //             System.out.println("--------------------" + simpleDateFormat.format(new Date()) + "----------------------");
-            //             System.out.println(syncData);
-            //         } catch (Exception e) {
-            //             e.printStackTrace();
-            //         }
-            //     }
-            // });
-            JMSUtil.getMessageConsumer("jyj").setMessageListener(new JyjMessageListener());
+            JMSUtil.receiveMessage("jyj", message -> {
+                if (message != null) {
+                    try {
+                        // message.acknowledge();
+                        TextMessage textMessage = (TextMessage) message;
+                        final String text = textMessage.getText();
+                        final SyncData syncData = JackSonUtil.toObject(text, SyncData.class);
+                        if (syncData == null) {
+                            log.warn("接收消息为空");
+                            return;
+                        }
+                        log.info("接收消息：{}", syncData.toString());
+                    } catch (Exception e) {
+                        log.error("接收消息错误：", e);
+                    }
+                } else {
+                    log.warn("接收消息为空");
+                }
+            });
         }
     }
 
@@ -48,6 +51,7 @@ class JyjMessageListener implements MessageListener {
 
     @Override
     public void onMessage(Message message) {
+        // JMSUtil.getMessageConsumer("jyj").setMessageListener(new JyjMessageListener());
         log.info("-------------------");
         if (message != null) {
             try {

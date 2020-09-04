@@ -6,6 +6,7 @@ import com.sjr.msg.pg.PgOutMessage;
 import com.sjr.msg.process.TableFactory;
 import com.sjr.msg.process.TableProcess;
 import com.sjr.msg.util.JMSUtil;
+import com.sjr.msg.util.JMSUtil1;
 import com.sjr.msg.util.JackSonUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,7 +30,7 @@ public class PGConsumerToMQProd extends AbstractPGConsumer {
                 try {
                     final String asString = JackSonUtil.JSON.writeValueAsString(syncData);
                     log.info("消息编号：{}，发送到mq", message.getLsnNum());
-                    JMSUtil.sendMessage(JMSUtil.JYJ, asString);
+                    JMSUtil1.sendMessage(JMSUtil.JYJ, asString);
                 } catch (JsonProcessingException e) {
                     log.error("解析消息:{}，发送给mq出错：", syncData.toString(), e);
                 }
