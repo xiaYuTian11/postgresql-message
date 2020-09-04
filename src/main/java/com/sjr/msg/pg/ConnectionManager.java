@@ -18,6 +18,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * 连接管理
  * https://github.com/xiaYuTian11/debezium
+ * select * from pg_replication_slots 复制槽
+ * SELECT * FROM pg_publication    发布
+ * select pg_drop_replication_slot('jyj_slot');  删除订阅槽
  *
  * @author TMW
  * @date 2020/8/28 11:32
@@ -70,7 +73,8 @@ public class ConnectionManager {
     private final AtomicBoolean isError = new AtomicBoolean(Boolean.FALSE);
     private final AtomicBoolean isRunning = new AtomicBoolean(Boolean.TRUE);
 
-    private ConnectionManager(){}
+    private ConnectionManager() {
+    }
 
     /**
      * 获取对象单列
