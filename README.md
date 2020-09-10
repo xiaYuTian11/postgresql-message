@@ -31,5 +31,30 @@ su - root -c '/usr/soft/sync/deploy.sh start'
 ```
 5.重启服务器验证脚本是否自启动成功。
  
-    
+## springboot logback.xml 读取 yml 文件配置问题
+由于Springboot 加载顺序是 logback.xml -> application.yml -> logback-spring.xml,所以在logback.xml中是不能读取到yml文件中的配置的
+解决方案：
+1.在yml 文件中配置日志存放路径：
+```yaml
+log:
+  file:
+    path: ./logs
+```
+2.将logback.xml名称改为 logback-spring.xml
+3.在logback-spring.xml 加入spring配置
+```xml
+<springProperty scope="context" name="logPath" source="log.file.path" defaultValue="logs"/>
+```
+4.使用配置,部署的时候可在yml 文件中配置绝对路径
+```xml
+<!-- 定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
+<property name="LOG_PATH" value="${logPath}"/>
+```
+
+## Springboot jar 和 资源分离打包后启动加载 lib及资源
+官方文档地址 https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#executable-jar-launching
+```shell script
+java -jar -Xms512m -Xmx2048m -Dloader.path=lib,resources test.jar
+```
+
    
