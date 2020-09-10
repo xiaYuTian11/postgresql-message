@@ -2,6 +2,14 @@
 server:
   port: 8008
 
+logging:
+  config: classpath:logback-spring.xml
+
+log:
+  file:
+    path: ./logs
+
+
 # springboot 配置
 #spring:
 #  datasource:

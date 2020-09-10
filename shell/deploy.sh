@@ -2,7 +2,8 @@
 #这里可替换为你自己的执行程序,其他代码无需更改
 APP_NAME=pgsql-0.0.1.jar
 JVM="-server -Xms512m -Xmx2048m "
-APPFILE_PATH=" -Dloader.path=lib,config"
+CONFIG_PATH="  -Dloader.path=lib,config"
+APPFILE_PATH="/usr/soft/sync/"
 #使用说明,用来提示输入参数
 usage() {
 echo "Usage: sh 执行脚本.sh [start|stop|restart|status]"
@@ -24,7 +25,7 @@ is_exist
 if [ $? -eq "0" ]; then
 echo "${APP_NAME} is already running. pid=${pid} ."
 else
-nohup java $JVM -jar $APPFILE_PATH $APP_NAME > /dev/null 2>&1 &
+nohup java $JVM -jar $CONFIG_PATH $APPFILE_PATH$APP_NAME > /dev/null 2>&1 &
 echo "启动成功"
 fi
 }
@@ -33,9 +34,9 @@ stop(){
 is_exist
 if [ $? -eq "0" ]; then
 kill -9 $pid
-echo "停止成功"
 else
 echo "${APP_NAME} is not running"
+echo "停止成功"
 fi
 }
 #输出运行状态

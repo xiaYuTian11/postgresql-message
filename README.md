@@ -14,8 +14,22 @@ deploy.sh 在 Windows 上可以运行，在linux上运行错误：
         chmod +x /usr/.../deploy.sh
     ```
 
+## linux 启动时启动 Spring Boot jar
 
-
+1.编写启动脚本，此处名为 deploy.sh
+2.给 deploy.sh 文件添加执行权限
+```shell script
+    chmod +x /usr/soft/sync/deploy.sh
+```
+3.给/etc/rc.d/rc.local文件添加执行权限
+```shell script
+    chmod +x /etc/rc.d/rc.local
+```
+4.在 /etc/rc.d/rc.local 文件末尾添加启动脚本命令
+```shell script
+su - root -c '/usr/soft/sync/deploy.sh start'
+```
+5.重启服务器验证脚本是否自启动成功。
  
     
    
