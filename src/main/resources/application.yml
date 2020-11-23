@@ -19,11 +19,11 @@ log:
 #    password: 20191809
 ## 自定义 ActiveMQ 配置
 pgsql:
-  host: 192.168.3.9
+  host: 127.0.0.1
   port: 5432
   username: postgres
-  password: 20191809
-  database_name: devdb
+  password: 123456
+  database_name: test
   publication_name: jyj_publication
   slot_name: jyj_slot
   syncTableSet:

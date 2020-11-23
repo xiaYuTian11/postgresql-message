@@ -1,4 +1,4 @@
-package com.sjr.msg;
+package com.sunnyday.msg;
 
 import cn.hutool.core.thread.ThreadUtil;
 import com.google.common.util.concurrent.*;

@@ -1,4 +1,4 @@
-package com.sjr.msg;
+package com.sunnyday.msg;
 
 import org.junit.jupiter.api.Test;
 import org.postgresql.PGConnection;

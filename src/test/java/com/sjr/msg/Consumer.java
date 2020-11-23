@@ -1,6 +1,6 @@
-package com.sjr.msg;
+package com.sunnyday.msg;
 
-import com.sjr.msg.util.JMSUtil;
+import com.sunnyday.msg.util.JMSUtil;
 
 /**
  * 消费者
